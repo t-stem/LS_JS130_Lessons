@@ -24,3 +24,10 @@ function bind(func, contextObj) {
 let boundGreet = bind(greet, interactions);
 
 boundGreet()
+
+function myBind(func, contextObj) {
+  return function(...args) { // rest syntax gathers arguments into an array variable called args
+    return func.apply(contextObj, args); // apply takes an array of args
+  }
+}
+
