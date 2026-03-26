@@ -1,0 +1,31 @@
+
+
+Understand the Problem:
+Identify expected input and output
+-> Inputs: 
+
+-> Outputs:
+
+-> When you write your program, don't use the single-letter variables m, p, j, and n; 
+
+
+Make the requirements explicit
+-> 
+
+Identify rules
+-> 
+
+Mental model of the problem (optional)
+-> 
+
+Examples/Test Case: Validate understanding of the problem
+-> 
+
+Data Structure: How we represent data that we will work with when converting the input to output.
+-> 
+
+Algorithm: Steps for converting input to output
+-> 
+
+Code:
+-> Finally, don't forget to run your code through ESLint. 
