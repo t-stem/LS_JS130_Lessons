@@ -15,7 +15,7 @@
 
 ## (A) Hoisting var vs. let/const
 - let/const
-  * declaration is hoisted
+  * declaration is hoisted to the top of its lexical scope
   * the variable is not initialized
   * in other words, the binding exists from the start of the scope, but is uninitialized until the declaration line is executed.
   * using the variable before its declaration line will throw a ReferenceError
@@ -73,7 +73,7 @@
   * Term only used by LS
   * Refers to the scope in which variables are declared
   * Can be either function or block scope
-    (A) functions create function scope
+    (A) var creates variables that have function scope 
     (A) {} syntax, if {}, for {}, switch {} create block scope for variables that are declared using let/const
 - Lexical scope
   * Term widely used in the JS community
@@ -87,6 +87,8 @@
   * a function, and
   * the lexical environment that the function has access to (its “closed over” variables).
 - Closures let a function access variables from an outer scope even after that outer function has returned.
+(A) Closures close over all the scopes they have access to and bind to the variables within those scopes. 
+(A) Whenever a variable is accessed, it will go through the scopes from inner to outer and look for the variable binding, using the first binding that it can find (i.e. the one in the innermost scope in which te binding is found).
 
 ### Private data
 -  **Data within closures can only be accessed by the function to which the closure belongs**
@@ -250,7 +252,7 @@
 ## Exceptions
 - Exceptions occur at runtime when the engine encounters a line of code that it cannot process, and as a result of which it cannot continue with the execution of the program
 (A) The program can also contain its own conditions under which it throws an exception
-- They can be thrown using ```javascript throw new Error``` syntax
+- They can be thrown using ```throw new Error``` syntax
   (A) By convention, we throw instances of Error (or its subclasses) with throw new Error('message');, though JavaScript allows throwing any value.
 - Built-in error types
   * ReferenceError: when accessing a variable that hasn't been declared
@@ -270,13 +272,25 @@
     - The catch block should focus on handling the error (logging, cleaning up, providing a fallback), and avoid doing unrelated work.
       * therefore, it ideally uses as little code as possible 
   * (in synchronous code) unless an exception is caught and resolved, execution of the program will terminate immediately
-  (A) An optional finally block can be added; its code runs whether or not an exception was thrown, and runs after try/catch.
+  (A) An optional finally block can be added; its code runs whether or not an exception was thrown, and runs after try/catch (to do any required teardown, e.g. closing an open database connection ).
 - Exceptions are passed up the call chain **in a manner similar to how return values are returned up the chain**
 (C) not in a similar manner like return values -> return values don't unwind the call-stack
 (C) A throw unwinds the stack until a catch is found; if none is found, the program terminates.
 (C) If an exception isn’t caught in the current function, it propagates up the call stack to the caller, and so on, until it is caught or the program terminates with an uncaught exception.
 
 ## Pure functions and side effects
+  - Pure function: given the same inputs (args), always returns the same output and causes no observable side effects.
+  - Side effects:
+    * modifying external state 
+      - mutating a global array
+      - reassigning a global variable
+    * performing I/O 
+      - obtaining user input
+      - logging to console
+      - network requests
+      - reading/writing files, 
+    * mutating input objects
+
 - side effects: any of the following operations that might part of a function (other than returning value)
   * reassigning a global variable
   * taking user input
@@ -309,15 +323,20 @@
     - takes a function argument and a time delay quoted in miliseconds (and optional extra args after the delay)
     - a call to setInterval passes the arguments to the API
     - at the specified interval, the API enqueues the function in the queue
-  * both functions return and ID
+  * both functions return an ID
     - clearInterval(ID) stops further callbacks
     - without a clearInterval call, callbacks continue until the program terminates
   * the event loop checks the callback queue whenever the call stack is empty.
     - in practice this means that the calls in the queue are only added to the call stack once all 'synchronous' code in the program has run
   * if there’s a callback waiting, it dequeues it and pushes that function call onto the stack.
   * this process continues until the queue is empty and the program finishes
+  * each callback runs to completion before the next one is dequeued (when the call stack is empty again)
 
 # Testing With Jest
+(A) testing can be used to prevent regression
+  * regression: when changes to code accidentally breaks existing features that were working before
+  * automated test can be run after every change to check that there is no regression
+ 
 ## Testing terminology
 (A) test suite: a collection of tests
 (C) test case/spec: a single test that verifies one specific behavior/requirement
@@ -360,7 +379,25 @@
 
 ## Writing tests
 - How to structure a test file
-  * 
+  ```javascript
+  let importedModule = require('path'); // import required modules
+  let newObj; // decl here so that it is available for all tests
+  
+  describe('description', () => {
+    beforeEach(() => {
+      newObj = new Obj(); // set up objects required for each test
+    });
+
+    test('test description', () => {
+      let otherObj = new Obj(); // set up objects required for this specific test
+      let arg = 5; // set up any variables needed
+      let outcome = otherObj.method(arg);
+      let expectedValue = newObj.method(arg);
+      
+      expect(outcome).toBe(expectedValue); // assert to compare outcome with expectation
+    });
+  });
+  ```
 - How to write an individual test
   * 
 - What makes a good test
@@ -409,13 +446,14 @@
 
 ## package.json and package-lock.json
 ### package.json 
-- file that can be generated through npm
+- file that can be generated through the 'npm init' command
 - is mainly used to show dependencies of a program by name and version range, not which exact versions are installed.
 (A) stores basic project metadata (name, version, etc.)
 (A) defines scripts (like "test": "jest"), which you’ll use with npm test, npm run <script>.
+(A) packages that are installed after package.json is created are automatically added, but packages that are already added are *not* automatically added to package.json when it is created, these would need to be reinstalled to be added
 
 ### package-lock.json
-- also generated through npm
+- automatically generated/updated through npm when a new package is installed, *as long as there's an existing package.json file*
 - shows the actual versions of the dependencies that are installed locally
   * It’s mainly for the tooling and reproducible installs; you generally don’t edit it by hand or “choose versions” from it
 (A) locks down the full dependency tree (including sub‑dependencies), so installs are reproducible.
@@ -425,6 +463,15 @@
 (A) act as shortcuts for longer terminal commands (like running Jest, starting a dev server, building, etc.).
 (A) run using npm run 'script name'
 (A) useful so collaborators (and CI) can run standard tasks with a single consistent command.
+```javascript
+{
+  "scripts": {
+    "exec-helper": "node ./scripts/helper.js"
+  }
+}
+
+// in terminal: npm run exec-helper
+```
 
 ## packaging projects
 (A) Preparing a project so it can be installed and used as an npm package (or at least cloned and installed reliably).
